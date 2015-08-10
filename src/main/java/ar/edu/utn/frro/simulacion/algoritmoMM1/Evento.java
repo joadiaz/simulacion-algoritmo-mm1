@@ -1,7 +1,13 @@
 package ar.edu.utn.frro.simulacion.algoritmoMM1;
 
-public enum Evento {
+public class Evento {
 
-	PARTIDA, ARRIBO;
-
+	public enum TIPO{
+		PARTIDA, ARRIBO;
+	}
+	
+	public TIPO tipo; 
+	public int tiempoDeOcurrencia; 
+	public boolean atendido; 
+	
 }
