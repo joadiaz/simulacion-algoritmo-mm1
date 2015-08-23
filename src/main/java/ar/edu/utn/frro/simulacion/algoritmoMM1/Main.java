@@ -4,8 +4,8 @@ public class Main {
 
 	public static void main(String[] args) {
 		for (int i = 0; i < 6; i++) {
-			new Simulacion().iniciarSimulacion();
-			System.out.println("===========================");
+			Reporte reporte = new Simulacion(100000).iniciarSimulacion();
+			reporte.printReportToCSVFile("reporte" + i + ".csv");
 		}
 	}
 

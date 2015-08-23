@@ -1,284 +1,206 @@
 package ar.edu.utn.frro.simulacion.algoritmoMM1;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Simulacion {
 
-	private static Logger LOG = LoggerFactory.getLogger(Simulacion.class);
-	private static final DecimalFormat DF = new DecimalFormat("0.0");
+    private static Logger LOG = LoggerFactory.getLogger(Simulacion.class);
 
-	/**
-	 * Condicion de fin de la simulacion
-	 */
-	private static final int CONDICION_FIN = 100000;
+    // Definicion de variables del sistema
+    private int condicionFin;
+    private Servidor servidor;
+    private int numeroMaximoEnCola;
 
-	/**
-	 * Valor de ALFA utilizado para la generaci√≥n de numeros de una distribuci√≥n exponencial.
-	 */
-	private static final double lAMBDA_ARRIBOS = 10;
-	private static final double lAMBDA_PARTIDAS = 9;
+    /**
+     * Algoritmo de Inicializacion
+     */
+    public Simulacion(int condicionFin) {
+        //LOG.info("Iniciando simulacion --> Condicion de fin de simulacion: {}", CONDICION_FIN);
+        if(condicionFin < 0) {
+            throw new IllegalStateException("La condicion de fin de la simulacion debe ser mayor a 0");
+        }
 
-	// Definicion de variables del sistema
-	private Servidor servidor = new Servidor();
-	private int numeroMaximoEnCola = 0;
-	
-	/**
-	 * Algoritmo Principal
-	 */
-	public void iniciarSimulacion() {
-		//LOG.info("Iniciando simulacion --> Condicion de fin de simulacion: {}", CONDICION_FIN);
-		inicializar();
+        this.condicionFin = condicionFin;
+        this.numeroMaximoEnCola = 0;
 
-		while (servidor.reloj < CONDICION_FIN) {
-			Evento proximoEvento = servidor.goToProximoEvento();
-			//LOG.info("Reloj: {} --> Procesando {}", servidor.reloj, proximoEvento.tipo);
+        //Creo el primer arribo
+        Evento eventoInicial = new Evento(Evento.Tipo.ARRIBO);
+        eventoInicial.setTiempoDeOcurrencia(Generador.nextArribo());
 
-			if (proximoEvento.tipo.equals(Evento.TIPO.ARRIBO)) {
-				procesarArribo();
-			} else {
-				procesarPartida();
-			}
-		}
+        //Inicializo el servidor
+        this.servidor = new Servidor(eventoInicial);
+    }
 
-		imprimirReporte();
-	}
+    /**
+     * Algoritmo Principal
+     */
+    public Reporte iniciarSimulacion() {
 
-	/**
-	 * Algoritmo de Inicializaci√≥n
-	 */
-	private void inicializar() {
-		
-		//Inicializo el servidor
-		servidor.reloj = 0;
-		servidor.estado = Servidor.ESTADO.LIBRE;
-		servidor.tiempoDeOcupacion = 0;
-		
-		//Creo el primer arribo
-		Evento nuevoEvento = new Evento();
-		nuevoEvento.tipo = Evento.TIPO.ARRIBO;
-		nuevoEvento.tiempoDeOcurrencia = generarRandomExponencial(lAMBDA_ARRIBOS);
-		
-		//Lo agrego a la lista de eventos
-		servidor.listaDeEventos.add(nuevoEvento);
-		
-	}
+        while (servidor.getReloj() < condicionFin) {
+            Evento proximoEvento = servidor.runProximoEvento();
+            //LOG.info("Reloj: {} --> Procesando {}", servidor.reloj, proximoEvento.tipo);
 
-	/**
-	 * Algoritmo Arribo
-	 */
-	private void procesarArribo() {
-		
-		if(servidor.estado == Servidor.ESTADO.OCUPADO){ 
-			//El cliente entra a la cola
-			Cliente clienteEnCola = new Cliente();
-			clienteEnCola.tiempoArribo = servidor.reloj;			
-			servidor.cola.add(clienteEnCola);
-			
-			//LOG.info("Cliente agregado a la cola; clientes en cola {}", servidor.cola.size());
-			
-			if(servidor.cola.size()>numeroMaximoEnCola){
-				numeroMaximoEnCola = servidor.cola.size();
-			}
-			
-			
-		} else{		
-			
-			//El servidor se ocupa
-			servidor.estado = Servidor.ESTADO.OCUPADO;
-			
-			//El cliente entra al servidor
-			Cliente clienteEnServicio = new Cliente();
-			clienteEnServicio.tiempoArribo = servidor.reloj;
-			clienteEnServicio.tiempoEntradaAlServidor = servidor.reloj;
-			clienteEnServicio.tiempoEnCola = 0;
-			
-			//Genero el evento de partida
-			Evento partida = new Evento();
-			partida.tipo = Evento.TIPO.PARTIDA;
-			partida.tiempoDeOcurrencia = generarRandomExponencial(lAMBDA_PARTIDAS) + servidor.reloj;
-			clienteEnServicio.tiempoPartida = partida.tiempoDeOcurrencia;
-			
-			//Agrego la informaciÛn al servidor
-			servidor.tiempoDeInicioOcupacion = servidor.reloj;
-			servidor.clientesAtendidos.add(clienteEnServicio);
-			servidor.listaDeEventos.add(partida);
-			
-			//LOG.info("Un cliente entrÛ al servidor, la partid· ser· en {}", partida.tiempoDeOcurrencia);
-		}
-		
-		//Genero el proximo arribo
-		Evento arribo = new Evento();
-		arribo.tipo = Evento.TIPO.ARRIBO;
-		arribo.tiempoDeOcurrencia = generarRandomExponencial(lAMBDA_ARRIBOS) + servidor.reloj;
-		servidor.listaDeEventos.add(arribo);
-		
-		//LOG.info("Genero el proximo arribo, ser· en {}", arribo.tiempoDeOcurrencia);
-		
-			
-		/*if (servidorDesocupado) { //SERVIDOR DESOCUPADO
-			servidorDesocupado = Boolean.FALSE;
-			LOG.info("El servidor se encuentra ahora OCUPADO");
+            if (proximoEvento.getTipo().equals(Evento.Tipo.ARRIBO)) {
+                procesarArribo();
+            } else {
+                procesarPartida();
+            }
+        }
 
-			int tiempoServicio = generarRandomExponencial(lAMBDA_PARTIDAS);
-			LOG.info("Tiempo de servicio generado: {}", tiempoServicio);
-			listaEventos.put(Evento.PARTIDA, reloj + tiempoServicio);
-			LOG.info("La partida del cliente del servidor sera en {}", listaEventos.get(Evento.PARTIDA));
+        Reporte reporte = generarReporte();
+        LOG.info("=======================\n" + reporte.toString());
 
-			clientesAtendidos++;
-			inicioOcupacionServidor = reloj;
-			
-			if( n!=0){
-				n--;
-			}
+        return reporte;
+    }
 
-		} else { //SERVIDOR OCUPADO
-			LOG.info("No se puede atender al cliente. El servidor aun se encuentra ocupado.");
-			deltaQ += (reloj - tiempoUltimoEvento) * n;
-			n++;
-			tiempoArribo = reloj;
-		}
+    /**
+     * Algoritmo Arribo
+     */
+    private void procesarArribo() {
 
-		int tiempoProximoArribo = generarRandomExponencial(lAMBDA_ARRIBOS);
-		LOG.info("Tiempo de arribo generado: {}", tiempoArribo);
-		listaEventos.put(Evento.ARRIBO, reloj + tiempoProximoArribo);
-		LOG.info("El proximo arribo se producira en {}", listaEventos.get(Evento.ARRIBO));
+        // Arriba un nuevo cliente
+        Cliente nuevoCliente = new Cliente();
+        nuevoCliente.setTiempoArribo(servidor.getReloj());
 
-		tiempoUltimoEvento = reloj;*/
-	}
+        if (servidor.getEstado().equals(Servidor.Estado.OCUPADO)) {
+            //El cliente entra a la cola
+            servidor.addClienteEnCola(nuevoCliente);
 
-	/**
-	 * Algoritmo Partida
-	 */
-	private void procesarPartida() {
-		
-		if (servidor.cola.size()==0){
-			
-			//El servidor se desocupa
-			servidor.estado = Servidor.ESTADO.LIBRE;
-			
-			//Acumulo la ocupaciÛn del servidor
-			servidor.tiempoDeOcupacion += (servidor.reloj - servidor.tiempoDeInicioOcupacion);
-			
-			//LOG.info("El servidor se desocupa");
-			
-		} else {
-			
-			//Tomo el primer item de la cola y lo agrego al servidor 
-			Cliente clienteEnServicio = servidor.cola.get(0);
-			clienteEnServicio.tiempoEntradaAlServidor = servidor.reloj;
-			clienteEnServicio.tiempoEnCola = clienteEnServicio.tiempoArribo - clienteEnServicio.tiempoEntradaAlServidor;
-			servidor.cola.remove(0);
-			
-			//Genero el evento de partida
-			Evento partida = new Evento();
-			partida.tipo = Evento.TIPO.PARTIDA;
-			partida.tiempoDeOcurrencia = generarRandomExponencial(lAMBDA_PARTIDAS) + servidor.reloj;
-			clienteEnServicio.tiempoPartida = partida.tiempoDeOcurrencia;
-			servidor.clientesAtendidos.add(clienteEnServicio);
-			servidor.listaDeEventos.add(partida);
-			
-			//LOG.info("El cliente que entrÛ en {} se mueve a la cola. La partida ser· en {}", clienteEnServicio.tiempoArribo, partida.tiempoDeOcurrencia);
-			
-		}
-		
-		servidor.tiempoDeInicioOcupacion = servidor.reloj;
-		
-		/*if (n == 0) {
+            //LOG.info("Cliente agregado a la cola; clientes en cola {}", servidor.cola.size());
 
-			int tiempoServicio = generarRandomExponencial(40);
-			listaEventos.put(Evento.PARTIDA, reloj + tiempoServicio);
-			LOG.info("La partida del cliente del servidor sera en {}", listaEventos.get(Evento.PARTIDA));
+            if (servidor.getCola().size() > numeroMaximoEnCola) {
+                numeroMaximoEnCola = servidor.getCola().size();
+            }
 
-			clientesAtendidos++;
-			deltaD += reloj + tiempoArribo;
-			deltaQ += (reloj - tiempoUltimoEvento) * n;
-			n--;
 
-		} else {
-			LOG.info("No hay clientes en cola. El servidor se desocupara.");
-			servidorDesocupado = Boolean.TRUE;
-			deltaB += reloj - inicioOcupacionServidor;
-			listaEventos.put(Evento.PARTIDA, Integer.MAX_VALUE); // MaxValue = Infinito
-		}
+        } else {
 
-		tiempoUltimoEvento = reloj;*/
-	}
+            //El servidor se ocupa
+            servidor.setEstado(Servidor.Estado.OCUPADO);
 
-	/**
-	 * Algoritmo Reporte
-	 */
-	private void imprimirReporte() {
+            //Genero el evento de partida
+            Evento partida = new Evento(Evento.Tipo.PARTIDA);
+            partida.setTiempoDeOcurrencia(Generador.nextPartida() + servidor.getReloj());
 
-		int tiempoEnColaTotal = 0;
-		int tiempoTotalEntreArribos = 0;
-		
-		//LOG.info("EVENTO    |   TIEMPO DE OCURRENCIA    |    estado");
-		int ultimoArribo = 0;
-		for (Evento evento : servidor.listaDeEventos){
-			//LOG.info(evento.tipo + " | " + evento.tiempoDeOcurrencia + "  |  " + evento.atendido);
-			//Calculo el tiempo total entre arribos
-			if(evento.tipo==Evento.TIPO.ARRIBO){
-				if (ultimoArribo == 0){
-					ultimoArribo = evento.tiempoDeOcurrencia;
-					tiempoTotalEntreArribos = ultimoArribo;
-				}else{
-					tiempoTotalEntreArribos += (evento.tiempoDeOcurrencia-ultimoArribo);
-					ultimoArribo = evento.tiempoDeOcurrencia;
-				}
-			}
-		}
-		
-		//LOG.info("Tiempo arribo | Tiempo entrada al Servidor |  Tiempo de Partida  |  Tiempo en cola");
-		servidor.tiempoDeOcupacion = 0;
-		
-		for (Cliente cliente : servidor.clientesAtendidos){
-			//LOG.info(cliente.tiempoArribo + " | " + cliente.tiempoEntradaAlServidor + " | " + cliente.tiempoPartida + " | " + (cliente.tiempoEntradaAlServidor-cliente.tiempoArribo));
-			tiempoEnColaTotal += cliente.tiempoEntradaAlServidor-cliente.tiempoArribo;
-			servidor.tiempoDeOcupacion += (cliente.tiempoPartida - cliente.tiempoEntradaAlServidor);
-		}
-		
-		//Ignoro el uso de servidor despues de CONDICION_FIN
-		if(servidor.tiempoDeOcupacion>CONDICION_FIN){
-			servidor.tiempoDeOcupacion -= (servidor.tiempoDeOcupacion-CONDICION_FIN);
-		}
-		
-		int totalClientes = servidor.clientesAtendidos.size();
-		double utilizacionDelServidor = servidor.tiempoDeOcupacion/(double)CONDICION_FIN*100;
-		LOG.info("Tiempo promedio entre arribos --> {} ", tiempoTotalEntreArribos/totalClientes);
-		LOG.info("Tiempo promedio en cola: --> {} ", tiempoEnColaTotal/totalClientes);
-		LOG.info("Tiempo de uso del servidor --> {} %",utilizacionDelServidor);
-		LOG.info("Tiempo promedio en servicio --> {} ", servidor.tiempoDeOcupacion/totalClientes);
-		LOG.info("M·ximo de clientes en cola --> {} ", numeroMaximoEnCola);
-		LOG.info("Numero medio de elementos en cola --> {} ", servidor.elementosEnCola/servidor.reloj);
-		LOG.info("Numero medio de elementos en sistema --> {} ", servidor.elementosEnSistema/servidor.reloj);
-	}
+            //El cliente entra al servidor
+            nuevoCliente.setTiempoEntradaAlServidor(servidor.getReloj());
+            nuevoCliente.setTiempoEnCola(0);
+            nuevoCliente.setTiempoPartida(partida.getTiempoDeOcurrencia());
 
-	/**
-	 * Algoritmo Generador Nro Exponencial
-	 * 
-	 * @return numero entero generado para una distribuci√≥n exponencial
-	 */
-	
-	private int generarRandomExponencial(double lambda) {
-		int generatedNumber = 0;
+            //Agrego la informaciÛn al servidor
+            servidor.setTiempoDeInicioOcupacion(servidor.getReloj());
+            servidor.addClienteAtendido(nuevoCliente);
+            servidor.addEvento(partida);
 
-		
-		// Nos aseguramos que el numero generado no sea 0
-		while (generatedNumber == 0) {
-			double random = Math.random();
-			double x = -Math.log(1.0 - random) * lambda;
-			generatedNumber = (int) (Math.round(x));
-		}
+            //LOG.info("Un cliente entrÛ al servidor, la partid· ser· en {}", partida.tiempoDeOcurrencia);
+        }
 
-		return generatedNumber;
-	}
+        //Genero el proximo arribo
+        Evento arribo = new Evento(Evento.Tipo.ARRIBO);
+        arribo.setTiempoDeOcurrencia(Generador.nextArribo() + servidor.getReloj());
+        servidor.addEvento(arribo);
+
+        //LOG.info("Genero el proximo arribo, ser· en {}", arribo.tiempoDeOcurrencia);
+    }
+
+    /**
+     * Algoritmo Partida
+     */
+    private void procesarPartida() {
+
+        if (servidor.getCola().isEmpty()) {
+
+            //El servidor se desocupa
+            servidor.setEstado(Servidor.Estado.LIBRE);
+
+            //Acumulo la ocupaciÛn del servidor
+            servidor.setTiempoDeOcupacion(servidor.getTiempoDeOcupacion() + (servidor.getReloj() - servidor.getTiempoDeInicioOcupacion()));
+
+            //LOG.info("El servidor se desocupa");
+
+        } else {
+
+            //Tomo el primer item de la cola y lo agrego al servidor
+            Cliente clienteEnServicio = servidor.getCola().get(0);
+            clienteEnServicio.setTiempoEntradaAlServidor(servidor.getReloj());
+            clienteEnServicio.setTiempoEnCola(clienteEnServicio.getTiempoArribo() - clienteEnServicio.getTiempoEntradaAlServidor());
+            servidor.getCola().remove(0);
+
+            //Genero el evento de partida
+            Evento partida = new Evento(Evento.Tipo.PARTIDA);
+            partida.setTiempoDeOcurrencia(Generador.nextPartida() + servidor.getReloj());
+            clienteEnServicio.setTiempoPartida(partida.getTiempoDeOcurrencia());
+
+            servidor.addClienteAtendido(clienteEnServicio);
+            servidor.addEvento(partida);
+
+            //LOG.info("El cliente que entrÛ en {} se mueve a la cola. La partida ser· en {}", clienteEnServicio.tiempoArribo, partida.tiempoDeOcurrencia);
+
+        }
+
+        servidor.setTiempoDeInicioOcupacion(servidor.getReloj());
+    }
+
+    /**
+     * Algoritmo Reporte
+     */
+    private Reporte generarReporte() {
+        Reporte reporte = new Reporte();
+
+        long tiempoEnColaTotal = 0;
+        long tiempoTotalEntreArribos = 0;
+        long ultimoArribo = 0;
+
+        for (Evento evento : servidor.getListaDeEventos()) {
+            reporte.addNewCronologiaEvento(reporte.new CronologiaEvento(evento.getTipo(), evento.getTiempoDeOcurrencia(), evento.isAtendido()));
+
+            //Calculo el tiempo total entre arribos
+            if (evento.getTipo().equals(Evento.Tipo.ARRIBO)) {
+                if (ultimoArribo == 0) {
+                    ultimoArribo = evento.getTiempoDeOcurrencia();
+                    tiempoTotalEntreArribos = ultimoArribo;
+
+                } else {
+                    tiempoTotalEntreArribos += (evento.getTiempoDeOcurrencia() - ultimoArribo);
+                    ultimoArribo = evento.getTiempoDeOcurrencia();
+                }
+            }
+        }
+
+        servidor.setTiempoDeOcupacion(0);
+
+        for (Cliente cliente : servidor.getClientesAtendidos()) {
+            reporte.addNewCronologiaClienteAtendido(reporte.new CronologiaClienteAtendido(
+                    cliente.getTiempoArribo(),
+                    cliente.getTiempoEntradaAlServidor(),
+                    cliente.getTiempoPartida(),
+                    (cliente.getTiempoEntradaAlServidor() - cliente.getTiempoArribo())));
+
+            tiempoEnColaTotal += cliente.getTiempoEntradaAlServidor() - cliente.getTiempoArribo();
+            servidor.setTiempoDeOcupacion(servidor.getTiempoDeOcupacion() + (cliente.getTiempoPartida() - cliente.getTiempoEntradaAlServidor()));
+        }
+
+        //Ignoro el uso de servidor despues de CONDICION_FIN
+        if (servidor.getTiempoDeOcupacion() > condicionFin) {
+            servidor.setTiempoDeOcupacion(servidor.getTiempoDeOcupacion() - (servidor.getTiempoDeOcupacion() - condicionFin));
+        }
+
+        int totalClientes = servidor.getClientesAtendidos().size();
+        double utilizacionDelServidor = servidor.getTiempoDeOcupacion() / (double) condicionFin * 100;
+
+        reporte.setTiempoPromedioEntreArribos(tiempoTotalEntreArribos / totalClientes);
+        reporte.setTiempoPromedioEnCola(tiempoEnColaTotal / totalClientes);
+        reporte.setTiempoUsoServidor(utilizacionDelServidor);
+        reporte.setTiempoPromedioEnServicio(servidor.getTiempoDeOcupacion() / totalClientes);
+        reporte.setMaximoClientesEnCola(numeroMaximoEnCola);
+        reporte.setPromedioElementosEnCola(servidor.getElementosEnCola() / servidor.getReloj());
+        reporte.setPromedioElementosEnSistema(servidor.getElementosEnSistema() / servidor.getReloj());
+
+        return reporte;
+    }
 
 }
