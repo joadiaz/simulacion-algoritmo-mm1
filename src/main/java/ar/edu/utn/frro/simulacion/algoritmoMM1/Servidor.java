@@ -12,6 +12,8 @@ public class Servidor {
 	public int reloj; 
 	public int tiempoDeOcupacion;
 	public int tiempoDeInicioOcupacion;
+	public int elementosEnCola;
+	public int elementosEnSistema;
 	
 	public ArrayList<Evento> listaDeEventos = new ArrayList<Evento>();
 	public ArrayList<Cliente> cola = new ArrayList<Cliente>(); 
@@ -50,6 +52,8 @@ public class Servidor {
 		}
 						
 		proximoEvento = listaDeEventos.get(eventoActivo);
+		elementosEnCola += (proximoEvento.tiempoDeOcurrencia - reloj) * cola.size();
+		elementosEnSistema += (proximoEvento.tiempoDeOcurrencia - reloj) * cola.size() + (estado.equals(ESTADO.OCUPADO) ? 1 : 0); 
 		reloj = proximoEvento.tiempoDeOcurrencia;
 		listaDeEventos.get(eventoActivo).atendido = true;	
 

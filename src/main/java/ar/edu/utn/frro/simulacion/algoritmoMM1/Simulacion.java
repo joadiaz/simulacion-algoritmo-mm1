@@ -16,15 +16,15 @@ public class Simulacion {
 	private static final DecimalFormat DF = new DecimalFormat("0.0");
 
 	/**
-	 * Condicion de fin de la simulaciÃ³n.
+	 * Condicion de fin de la simulacion
 	 */
-	private static final int CONDICION_FIN = 100;
+	private static final int CONDICION_FIN = 100000;
 
 	/**
 	 * Valor de ALFA utilizado para la generaciÃ³n de numeros de una distribuciÃ³n exponencial.
 	 */
-	private static final double lAMBDA_ARRIBOS = 5;
-	private static final double lAMBDA_PARTIDAS = 7;
+	private static final double lAMBDA_ARRIBOS = 10;
+	private static final double lAMBDA_PARTIDAS = 9;
 
 	// Definicion de variables del sistema
 	private Servidor servidor = new Servidor();
@@ -34,12 +34,12 @@ public class Simulacion {
 	 * Algoritmo Principal
 	 */
 	public void iniciarSimulacion() {
-		LOG.info("Iniciando simulacion --> Condicion de fin de simulacion: {}", CONDICION_FIN);
+		//LOG.info("Iniciando simulacion --> Condicion de fin de simulacion: {}", CONDICION_FIN);
 		inicializar();
 
 		while (servidor.reloj < CONDICION_FIN) {
 			Evento proximoEvento = servidor.goToProximoEvento();
-			LOG.info("Reloj: {} --> Procesando {}", servidor.reloj, proximoEvento.tipo);
+			//LOG.info("Reloj: {} --> Procesando {}", servidor.reloj, proximoEvento.tipo);
 
 			if (proximoEvento.tipo.equals(Evento.TIPO.ARRIBO)) {
 				procesarArribo();
@@ -82,7 +82,7 @@ public class Simulacion {
 			clienteEnCola.tiempoArribo = servidor.reloj;			
 			servidor.cola.add(clienteEnCola);
 			
-			LOG.info("Cliente agregado a la cola; clientes en cola {}", servidor.cola.size());
+			//LOG.info("Cliente agregado a la cola; clientes en cola {}", servidor.cola.size());
 			
 			if(servidor.cola.size()>numeroMaximoEnCola){
 				numeroMaximoEnCola = servidor.cola.size();
@@ -111,7 +111,7 @@ public class Simulacion {
 			servidor.clientesAtendidos.add(clienteEnServicio);
 			servidor.listaDeEventos.add(partida);
 			
-			LOG.info("Un cliente entró al servidor, la partidá será en {}", partida.tiempoDeOcurrencia);
+			//LOG.info("Un cliente entró al servidor, la partidá será en {}", partida.tiempoDeOcurrencia);
 		}
 		
 		//Genero el proximo arribo
@@ -120,7 +120,7 @@ public class Simulacion {
 		arribo.tiempoDeOcurrencia = generarRandomExponencial(lAMBDA_ARRIBOS) + servidor.reloj;
 		servidor.listaDeEventos.add(arribo);
 		
-		LOG.info("Genero el proximo arribo, será en {}", arribo.tiempoDeOcurrencia);
+		//LOG.info("Genero el proximo arribo, será en {}", arribo.tiempoDeOcurrencia);
 		
 			
 		/*if (servidorDesocupado) { //SERVIDOR DESOCUPADO
@@ -167,7 +167,7 @@ public class Simulacion {
 			//Acumulo la ocupación del servidor
 			servidor.tiempoDeOcupacion += (servidor.reloj - servidor.tiempoDeInicioOcupacion);
 			
-			LOG.info("El servidor se desocupa");
+			//LOG.info("El servidor se desocupa");
 			
 		} else {
 			
@@ -185,7 +185,7 @@ public class Simulacion {
 			servidor.clientesAtendidos.add(clienteEnServicio);
 			servidor.listaDeEventos.add(partida);
 			
-			LOG.info("El cliente que entró en {} se mueve a la cola. La partida será en {}", clienteEnServicio.tiempoArribo, partida.tiempoDeOcurrencia);
+			//LOG.info("El cliente que entró en {} se mueve a la cola. La partida será en {}", clienteEnServicio.tiempoArribo, partida.tiempoDeOcurrencia);
 			
 		}
 		
@@ -220,10 +220,10 @@ public class Simulacion {
 		int tiempoEnColaTotal = 0;
 		int tiempoTotalEntreArribos = 0;
 		
-		LOG.info("EVENTO    |   TIEMPO DE OCURRENCIA    |    estado");
+		//LOG.info("EVENTO    |   TIEMPO DE OCURRENCIA    |    estado");
 		int ultimoArribo = 0;
 		for (Evento evento : servidor.listaDeEventos){
-			LOG.info(evento.tipo + " | " + evento.tiempoDeOcurrencia + "  |  " + evento.atendido);
+			//LOG.info(evento.tipo + " | " + evento.tiempoDeOcurrencia + "  |  " + evento.atendido);
 			//Calculo el tiempo total entre arribos
 			if(evento.tipo==Evento.TIPO.ARRIBO){
 				if (ultimoArribo == 0){
@@ -236,11 +236,11 @@ public class Simulacion {
 			}
 		}
 		
-		LOG.info("Tiempo arribo | Tiempo entrada al Servidor |  Tiempo de Partida  |  Tiempo en cola");
+		//LOG.info("Tiempo arribo | Tiempo entrada al Servidor |  Tiempo de Partida  |  Tiempo en cola");
 		servidor.tiempoDeOcupacion = 0;
 		
 		for (Cliente cliente : servidor.clientesAtendidos){
-			LOG.info(cliente.tiempoArribo + " | " + cliente.tiempoEntradaAlServidor + " | " + cliente.tiempoPartida + " | " + (cliente.tiempoEntradaAlServidor-cliente.tiempoArribo));
+			//LOG.info(cliente.tiempoArribo + " | " + cliente.tiempoEntradaAlServidor + " | " + cliente.tiempoPartida + " | " + (cliente.tiempoEntradaAlServidor-cliente.tiempoArribo));
 			tiempoEnColaTotal += cliente.tiempoEntradaAlServidor-cliente.tiempoArribo;
 			servidor.tiempoDeOcupacion += (cliente.tiempoPartida - cliente.tiempoEntradaAlServidor);
 		}
@@ -256,7 +256,9 @@ public class Simulacion {
 		LOG.info("Tiempo promedio en cola: --> {} ", tiempoEnColaTotal/totalClientes);
 		LOG.info("Tiempo de uso del servidor --> {} %",utilizacionDelServidor);
 		LOG.info("Tiempo promedio en servicio --> {} ", servidor.tiempoDeOcupacion/totalClientes);
-		LOG.info("Máximo de clientes en cola --> {} ", numeroMaximoEnCola);			
+		LOG.info("Máximo de clientes en cola --> {} ", numeroMaximoEnCola);
+		LOG.info("Numero medio de elementos en cola --> {} ", servidor.elementosEnCola/servidor.reloj);
+		LOG.info("Numero medio de elementos en sistema --> {} ", servidor.elementosEnSistema/servidor.reloj);
 	}
 
 	/**
@@ -273,7 +275,7 @@ public class Simulacion {
 		while (generatedNumber == 0) {
 			double random = Math.random();
 			double x = -Math.log(1.0 - random) * lambda;
-			generatedNumber = (int)x;
+			generatedNumber = (int) (Math.round(x));
 		}
 
 		return generatedNumber;
