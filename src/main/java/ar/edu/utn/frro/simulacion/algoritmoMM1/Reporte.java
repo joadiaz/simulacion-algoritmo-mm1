@@ -67,6 +67,34 @@ public class Reporte {
         this.promedioElementosEnSistema = promedioElementosEnSistema;
     }
 
+    public long getTiempoPromedioEntreArribos() {
+        return tiempoPromedioEntreArribos;
+    }
+
+    public long getTiempoPromedioEnCola() {
+        return tiempoPromedioEnCola;
+    }
+
+    public double getTiempoUsoServidor() {
+        return tiempoUsoServidor;
+    }
+
+    public long getTiempoPromedioEnServicio() {
+        return tiempoPromedioEnServicio;
+    }
+
+    public long getMaximoClientesEnCola() {
+        return maximoClientesEnCola;
+    }
+
+    public long getPromedioElementosEnCola() {
+        return promedioElementosEnCola;
+    }
+
+    public long getPromedioElementosEnSistema() {
+        return promedioElementosEnSistema;
+    }
+
     @Override
     public String toString() {
 
