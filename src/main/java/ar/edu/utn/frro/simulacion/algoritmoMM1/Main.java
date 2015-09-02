@@ -16,7 +16,7 @@ public class Main {
 
         final List<String> resultados = new ArrayList<String>();
         double acumTiempoUsoServicio=0;
-        float acumTiempoPromedioEntreArribo=0, acumTiempoPromedioEnCola=0,acumTiempoPromedioEnServicio=0, acumMaximoClientesEnCola=0, acumPromedioElementosEnCola=0, acumPromedioElementosEnSistema=0;
+        long acumTiempoPromedioEntreArribo=0, acumTiempoPromedioEnCola=0,acumTiempoPromedioEnServicio=0, acumMaximoClientesEnCola=0, acumPromedioElementosEnCola=0, acumPromedioElementosEnSistema=0;
         resultados.add("Tiempo promedio entre arribos,Tiempo promedio en cola,Tiempo de uso del servidor (%),Tiempo promedio en Servicio,Máximo de clientes en cola,Promedio elementos en cola,Promedio elementos en Sistema\n");
         int incremento=1;
 		for (int i = 0; i < 100; i++) {
