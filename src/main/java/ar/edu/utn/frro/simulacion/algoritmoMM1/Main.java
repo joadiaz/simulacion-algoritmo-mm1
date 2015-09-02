@@ -15,18 +15,33 @@ public class Main {
 	public static void main(String[] args) {
 
         final List<String> resultados = new ArrayList<String>();
+        double acumTiempoUsoServicio=0;
+        float acumTiempoPromedioEntreArribo=0, acumTiempoPromedioEnCola=0,acumTiempoPromedioEnServicio=0, acumMaximoClientesEnCola=0, acumPromedioElementosEnCola=0, acumPromedioElementosEnSistema=0;
         resultados.add("Tiempo promedio entre arribos,Tiempo promedio en cola,Tiempo de uso del servidor (%),Tiempo promedio en Servicio,Máximo de clientes en cola,Promedio elementos en cola,Promedio elementos en Sistema\n");
-
-		for (int i = 0; i < 1000; i++) {
-			final Reporte reporte = new Simulacion(100000).iniciarSimulacion();
+        int incremento=1;
+		for (int i = 0; i < 100; i++) {
+			
+			for (int j = 0; j < incremento; j++) {
+				final Reporte reporte = new Simulacion(1).iniciarSimulacion();
+				
+				acumTiempoPromedioEntreArribo=reporte.getTiempoPromedioEntreArribos()+acumTiempoPromedioEntreArribo;
+				acumTiempoPromedioEnCola=reporte.getTiempoPromedioEnCola()+acumTiempoPromedioEnCola;
+				acumTiempoUsoServicio=reporte.getTiempoUsoServidor()+acumTiempoUsoServicio;
+				acumTiempoPromedioEnServicio=reporte.getTiempoPromedioEnServicio()+acumTiempoPromedioEnServicio;
+				acumMaximoClientesEnCola=reporte.getMaximoClientesEnCola()+acumMaximoClientesEnCola;
+				acumPromedioElementosEnCola=reporte.getPromedioElementosEnCola()+acumPromedioElementosEnCola;
+				acumPromedioElementosEnSistema=reporte.getPromedioElementosEnSistema()+acumPromedioElementosEnSistema;
+			}
+			incremento=incremento+1;
 			resultados.add(String.format(REPORTE,
-                    reporte.getTiempoPromedioEntreArribos(),
-                    reporte.getTiempoPromedioEnCola(),
-                    reporte.getTiempoUsoServidor(),
-                    reporte.getTiempoPromedioEnServicio(),
-                    reporte.getMaximoClientesEnCola(),
-                    reporte.getPromedioElementosEnCola(),
-                    reporte.getPromedioElementosEnSistema()));
+					acumTiempoPromedioEntreArribo/incremento,
+					acumTiempoPromedioEnCola/incremento,
+					acumTiempoUsoServicio/incremento,
+					acumTiempoPromedioEnServicio/incremento,
+					acumMaximoClientesEnCola/incremento,
+					acumPromedioElementosEnCola/incremento,
+					acumPromedioElementosEnSistema/incremento));
+					
 		}
 
         try
