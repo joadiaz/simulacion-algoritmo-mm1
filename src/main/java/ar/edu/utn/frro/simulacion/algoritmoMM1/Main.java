@@ -22,17 +22,17 @@ public class Main {
 		for (int i = 0; i < 100; i++) {
 			
 			for (int j = 0; j < incremento; j++) {
-				final Reporte reporte = new Simulacion(1).iniciarSimulacion();
+				final Reporte reporte = new Simulacion(100).iniciarSimulacion();
 				
 				acumTiempoPromedioEntreArribo=reporte.getTiempoPromedioEntreArribos()+acumTiempoPromedioEntreArribo;
-				acumTiempoPromedioEnCola=reporte.getTiempoPromedioEnCola()+acumTiempoPromedioEnCola;
-				acumTiempoUsoServicio=reporte.getTiempoUsoServidor()+acumTiempoUsoServicio;
-				acumTiempoPromedioEnServicio=reporte.getTiempoPromedioEnServicio()+acumTiempoPromedioEnServicio;
-				acumMaximoClientesEnCola=reporte.getMaximoClientesEnCola()+acumMaximoClientesEnCola;
-				acumPromedioElementosEnCola=reporte.getPromedioElementosEnCola()+acumPromedioElementosEnCola;
-				acumPromedioElementosEnSistema=reporte.getPromedioElementosEnSistema()+acumPromedioElementosEnSistema;
+				acumTiempoPromedioEnCola=(long)reporte.getTiempoPromedioEnCola()+acumTiempoPromedioEnCola;
+				acumTiempoUsoServicio=(long)reporte.getTiempoUsoServidor()+acumTiempoUsoServicio;
+				acumTiempoPromedioEnServicio=(long)reporte.getTiempoPromedioEnServicio()+acumTiempoPromedioEnServicio;
+				acumMaximoClientesEnCola=(long)reporte.getMaximoClientesEnCola()+acumMaximoClientesEnCola;
+				acumPromedioElementosEnCola=(long)reporte.getPromedioElementosEnCola()+acumPromedioElementosEnCola;
+				acumPromedioElementosEnSistema=(long)reporte.getPromedioElementosEnSistema()+acumPromedioElementosEnSistema;
 			}
-			incremento=incremento+1;
+			
 			resultados.add(String.format(REPORTE,
 					acumTiempoPromedioEntreArribo/incremento,
 					acumTiempoPromedioEnCola/incremento,
@@ -41,7 +41,7 @@ public class Main {
 					acumMaximoClientesEnCola/incremento,
 					acumPromedioElementosEnCola/incremento,
 					acumPromedioElementosEnSistema/incremento));
-					
+			incremento=incremento+1;
 		}
 
         try
