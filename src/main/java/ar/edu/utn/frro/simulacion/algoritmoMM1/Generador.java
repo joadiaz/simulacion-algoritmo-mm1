@@ -8,8 +8,8 @@ public class Generador {
     /**
      * Valor de ALFA utilizado para la generacion de numeros de una distribucion exponencial.
      */
-    private static final double lAMBDA_ARRIBOS = 10;
-    private static final double lAMBDA_PARTIDAS = 9;
+    private static final double lAMBDA_ARRIBOS = 5;
+    private static final double lAMBDA_PARTIDAS = 10;
 
     public static int nextArribo() {
         return generarRandomExponencial(lAMBDA_ARRIBOS);

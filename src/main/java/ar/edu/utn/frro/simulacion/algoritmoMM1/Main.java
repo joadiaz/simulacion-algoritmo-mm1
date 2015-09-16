@@ -10,16 +10,24 @@ import java.util.List;
 public class Main {
 
     private static Logger LOG = LoggerFactory.getLogger(Main.class);
-    private static final String REPORTE = "%s,%s,%s,%s,%s,%s,%s\n";
+    private static final String REPORTE = "%s,%s,%s,%s,%s,%s,%s,\n";
 
 	public static void main(String[] args) {
 
         final List<String> resultados = new ArrayList<String>();
         double acumTiempoUsoServicio=0;
         long acumTiempoPromedioEntreArribo=0, acumTiempoPromedioEnCola=0,acumTiempoPromedioEnServicio=0, acumMaximoClientesEnCola=0, acumPromedioElementosEnCola=0, acumPromedioElementosEnSistema=0;
-        resultados.add("Tiempo promedio entre arribos,Tiempo promedio en cola,Tiempo de uso del servidor (%),Tiempo promedio en Servicio,Máximo de clientes en cola,Promedio elementos en cola,Promedio elementos en Sistema\n");
+        resultados.add("Cantidad de vueltas,Tiempo promedio entre arribos,Tiempo promedio en cola,Tiempo de uso del servidor (%),Tiempo promedio en Servicio,Máximo de clientes en cola,Promedio elementos en cola,Promedio elementos en Sistema\n");
         int incremento=1;
 		for (int i = 0; i < 100; i++) {
+			
+			acumTiempoPromedioEntreArribo = 0;
+			acumTiempoPromedioEnCola = 0;
+			acumTiempoUsoServicio = 0;
+			acumTiempoPromedioEnServicio = 0;
+			acumMaximoClientesEnCola = 0;
+			acumPromedioElementosEnCola = 0;
+			acumPromedioElementosEnSistema = 0;
 			
 			for (int j = 0; j < incremento; j++) {
 				final Reporte reporte = new Simulacion(100).iniciarSimulacion();
@@ -34,6 +42,7 @@ public class Main {
 			}
 			
 			resultados.add(String.format(REPORTE,
+					incremento, 
 					acumTiempoPromedioEntreArribo/incremento,
 					acumTiempoPromedioEnCola/incremento,
 					acumTiempoUsoServicio/incremento,
